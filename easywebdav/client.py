@@ -35,13 +35,22 @@ def prop(elem, name, default=None):
 
 
 def elem2file(elem):
-    return File(
-        prop(elem, 'href'),
-        int(prop(elem, 'getcontentlength', 0)),
-        prop(elem, 'getlastmodified', ''),
-        prop(elem, 'creationdate', ''),
-        prop(elem, 'getcontenttype', ''),
-    )
+    try:
+        return File(
+            prop(elem, 'href'),
+            int(prop(elem, 'getcontentlength', 0)),
+            prop(elem, 'getlastmodified', ''),
+            prop(elem, 'creationdate', ''),
+            prop(elem, 'getcontenttype', ''),
+        )
+    except:
+        return File(
+            prop(elem, 'href'),
+            0,
+            prop(elem, 'getlastmodified', ''),
+            prop(elem, 'creationdate', ''),
+            prop(elem, 'getcontenttype', ''),
+        )
 
 
 class OperationFailed(WebdavException):
