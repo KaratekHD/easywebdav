@@ -159,7 +159,7 @@ class Client(object):
         self._send('DELETE', path, 204)
 
     def upload(self, local_path_or_fileobj, remote_path):
-        if isinstance(local_path_or_fileobj, basestring):
+        if isinstance(local_path_or_fileobj, str):
             with open(local_path_or_fileobj, 'rb') as f:
                 self._upload(f, remote_path)
         else:
@@ -170,11 +170,20 @@ class Client(object):
 
     def download(self, remote_path, local_path_or_fileobj):
         response = self._send('GET', remote_path, 200, stream=True)
-        if isinstance(local_path_or_fileobj, basestring):
+        if isinstance(local_path_or_fileobj, str):
             with open(local_path_or_fileobj, 'wb') as f:
                 self._download(f, response)
         else:
             self._download(local_path_or_fileobj, response)
+
+    def tree(self, remote_path='.'):
+        response = self._send('PROPFIND', remote_path, (207, 301))
+        # Redirect
+        if response.status_code == 301:
+            url = urlparse(response.headers['location'])
+            return self.ls(url.path)
+        tree = xml.fromstring(response.content)
+        return [elem2file(elem) for elem in tree.findall('{DAV:}response')]
 
     def _download(self, fileobj, response):
         for chunk in response.iter_content(DOWNLOAD_CHUNK_SIZE_BYTES):
